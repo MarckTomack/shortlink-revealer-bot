@@ -18,7 +18,10 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 package main
 
 import (
+	"encoding/json"
 	tb "gopkg.in/tucnak/telebot.v2"
+	"io/ioutil"
+	"log"
 	"net/http"
 	"regexp"
 	"strings"
@@ -26,15 +29,11 @@ import (
 )
 
 var (
-	bot, _ = tb.NewBot(tb.Settings{
-		Token:  "YOUR TOKEN HERE",
-		Poller: &tb.LongPoller{Timeout: 25 * time.Minute},
-	})
+	searchURL, _ = regexp.Compile(`http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+`)
 )
 
-func onText() {
+func onText(bot *tb.Bot) {
 	bot.Handle(tb.OnText, func(m *tb.Message) {
-		searchURL, _ := regexp.Compile(`http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+`)
 		url := searchURL.FindString(m.Text)
 		if url == "" {
 			println("no link")
@@ -48,9 +47,8 @@ func onText() {
 	})
 }
 
-func onVideo() {
+func onVideo(bot *tb.Bot) {
 	bot.Handle(tb.OnVideo, func(m *tb.Message) {
-		searchURL, _ := regexp.Compile(`http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+`)
 		url := searchURL.FindString(m.Caption)
 		if url == "" {
 			println("no link")
@@ -64,9 +62,8 @@ func onVideo() {
 	})
 }
 
-func onPhoto() {
+func onPhoto(bot *tb.Bot) {
 	bot.Handle(tb.OnPhoto, func(m *tb.Message) {
-		searchURL, _ := regexp.Compile(`http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+`)
 		url := searchURL.FindString(m.Caption)
 		if url == "" {
 			println("no link")
@@ -81,9 +78,24 @@ func onPhoto() {
 }
 
 func main() {
-	onText()
-	onVideo()
-	onPhoto()
+	var jsonFile, err = ioutil.ReadFile("config.json")
+	if err != nil {
+		log.Fatal(err)
+	}
+	var config map[string]interface{}
+
+	json.Unmarshal(jsonFile, &config)
+
+	bot, err := tb.NewBot(tb.Settings{
+		Token:  config["token"].(string),
+		Poller: &tb.LongPoller{Timeout: 25 * time.Minute},
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	onText(bot)
+	onVideo(bot)
+	onPhoto(bot)
 	bot.Start()
 
 }
