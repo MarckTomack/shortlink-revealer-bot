@@ -32,6 +32,12 @@ var (
 	searchURL, _ = regexp.Compile(`http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+`)
 )
 
+func start(bot *tb.Bot) {
+	bot.Handle("/start", func(m *tb.Message) {
+		bot.Send(m.Sender, "Send a shortlink or a message containing a shortlink and this bot will reveal the real link.")
+	})
+}
+
 func onText(bot *tb.Bot) {
 	bot.Handle(tb.OnText, func(m *tb.Message) {
 		url := searchURL.FindString(m.Text)
@@ -93,6 +99,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	start(bot)
 	onText(bot)
 	onVideo(bot)
 	onPhoto(bot)
