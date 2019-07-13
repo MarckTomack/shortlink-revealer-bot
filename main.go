@@ -28,9 +28,7 @@ import (
 	"time"
 )
 
-var (
-	searchURL, _ = regexp.Compile(`http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+`)
-)
+var searchURL, _ = regexp.Compile(`http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+`)
 
 func start(bot *tb.Bot) {
 	bot.Handle("/start", func(m *tb.Message) {
@@ -44,7 +42,10 @@ func onText(bot *tb.Bot) {
 		if url == "" {
 			println("no link")
 		} else {
-			getReq, _ := http.Get(url)
+			getReq, err := http.Get(url)
+			if err != nil {
+				log.Println(err)
+			}
 			realLink := getReq.Request.URL.String()
 			msg := strings.Replace(m.Text, url, realLink, -1)
 			bot.Send(m.Sender, "<b>This is the real link:</b>\n\n"+msg, tb.ModeHTML)
@@ -59,7 +60,10 @@ func onVideo(bot *tb.Bot) {
 		if url == "" {
 			println("no link")
 		} else {
-			getReq, _ := http.Get(url)
+			getReq, err := http.Get(url)
+			if err != nil {
+				log.Println(err)
+			}
 			realLink := getReq.Request.URL.String()
 			msg := strings.Replace(m.Caption, url, realLink, -1)
 			bot.Send(m.Sender, "<b>This is the real link:</b>\n\n"+msg, tb.ModeHTML)
@@ -74,7 +78,10 @@ func onPhoto(bot *tb.Bot) {
 		if url == "" {
 			println("no link")
 		} else {
-			getReq, _ := http.Get(url)
+			getReq, err := http.Get(url)
+			if err != nil {
+				log.Println(err)
+			}
 			realLink := getReq.Request.URL.String()
 			msg := strings.Replace(m.Caption, url, realLink, -1)
 			bot.Send(m.Sender, "<b>This is the real link:</b>\n\n"+msg, tb.ModeHTML)
